@@ -13,7 +13,7 @@ app.use(express.static('public'));
 
 // --- Cosmos DB config via environment ---
 const endpoint = process.env.COSMOS_ENDPOINT;   // e.g. https://rideaucanalcosmos.documents.azure.com:443/
-const key = process.env.COSMOS_KEY;             // your primary/secondary key (keep secret!)
+const key = process.env.COSMOS_KEY;             
 const databaseId = process.env.COSMOS_DB || 'RideauCanalDB';
 const containerId = process.env.COSMOS_CONTAINER || 'SensorAggregations';
 

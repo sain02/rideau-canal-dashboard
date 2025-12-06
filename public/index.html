@@ -1,15 +1,67 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Rideau Canal Skateway Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rideau Canal Sensor Dashboard</title>
+  styles.css
 </head>
 <body>
-  <h1>Rideau Canal Skateway Monitor</h1>
-  <div id="cards"></div>
-  <canvas id="chart" width="800" height="300"></canvas>
-  <script src="app.js"></script>
+  <header>
+    <h1>Rideau Canal — Sensor Dashboard</h1>
+    <div class="controls">
+      <button id="refreshBtn" title="Refresh data">⟳ Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Latest Aggregations</h2>
+      <p class="hint">Shows the most recent window per location from Cosmos DB.</p>
+      <div id="latestList" class="cards"></div>
+    </section>
+
+    <section class="panel">
+      <h2>History (last hour)</h2>
+      <div class="history-controls">
+        <label for="locationSelect">Location:</label>
+        <select id="locationSelect"></select>
+        <label for="limitInput">Points:</label>
+        <input id="limitInput" type="number" min="5" max="300" value="60" />
+        <button id="loadHistoryBtn">Load History</button>
+      </div>
+
+      <div class="charts">
+        <div class="chart">
+          <h3>Temperature</h3>
+          <canvas id="tempChart" width="800" height="250"></canvas>
+        </div>
+        <div class="chart">
+          <h3>Humidity</h3>
+          <canvas id="humChart" width="800" height="250"></canvas>
+        </div>
+      </div>
+
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>windowEnd</th>
+            <th>temperature</th>
+            <th>humidity</th>
+            <th>location</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <small>© Rideau Canal Dashboard</small>
+  </footer>
+
+  app.js</script>
 </body>
 </html>

@@ -1,77 +1,108 @@
-let latestUrl = "/api/latest";
-let historyUrl = "/api/history/";
+let iceChart, tempChart;
 
-async function loadData() {
-    const res = await fetch(latestUrl);
-    const data = await res.json();
+async function fetchLatest() {
+    const res = await fetch("/api/latest");
+    return res.json();
+}
 
-    const lastUpdated = document.getElementById("lastUpdated");
-    lastUpdated.textContent = new Date().toLocaleTimeString();
+async function fetchHistory(location) {
+    const res = await fetch(`/api/history/${location}?hours=1`);
+    return res.json();
+}
 
-    data.forEach(item => {
-        updateCard(item);
+function getStatusColor(status) {
+    if (status === "Safe") return "safe";
+    if (status === "Caution") return "caution";
+    return "unsafe";
+}
+
+function createCard(data) {
+    return `
+        <div class="card">
+            <h2>${data.location.replace(/([A-Z])/g, " $1").trim()}</h2>
+            <span class="status-badge ${getStatusColor(data.safetyStatus)}">${data.safetyStatus}</span>
+
+            <p><b>Ice Thickness:</b> ${data.avgIceThickness.toFixed(2)} cm</p>
+            <p><b>Surface Temp:</b> ${data.avgSurfaceTemperature.toFixed(2)} °C</p>
+            <p><b>Snow:</b> ${data.avgSnow.toFixed(2)} cm</p>
+        </div>
+    `;
+}
+
+async function loadDashboard() {
+    const latest = await fetchLatest();
+    const container = document.getElementById("cardsContainer");
+    container.innerHTML = "";
+
+    latest.forEach(item => {
+        container.innerHTML += createCard(item);
     });
 
-    loadCharts();
+    // Update last updated time
+    document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString();
+
+    // Trends
+    await loadCharts(latest.map(x => x.location));
 }
 
-function updateCard(item) {
-    const id = item.location.replace(/\s/g, "");
-    document.getElementById(id + "-ice").textContent = item.avgIceThickness.toFixed(2);
-    document.getElementById(id + "-temp").textContent = item.avgSurfaceTemp.toFixed(2);
-    document.getElementById(id + "-snow").textContent = item.avgSnow.toFixed(2);
+async function loadCharts(locations) {
+    const iceDatasets = [];
+    const tempDatasets = [];
+    const labels = [];
 
-    // status color
-    const badge = document.getElementById(id + "-status");
-    badge.textContent = item.safetyStatus;
+    for (const loc of locations) {
+        const history = await fetchHistory(loc);
 
-    if (item.safetyStatus === "Safe") badge.className = "badge safe";
-    else if (item.safetyStatus === "Caution") badge.className = "badge caution";
-    else badge.className = "badge danger";
+        if (labels.length === 0) {
+            history.forEach(h => labels.push(h.windowEnd));
+        }
+
+        iceDatasets.push({
+            label: loc,
+            borderColor: getColorForLocation(loc),
+            data: history.map(h => h.avgIceThickness),
+            fill: false
+        });
+
+        tempDatasets.push({
+            label: loc,
+            borderColor: getColorForLocation(loc),
+            data: history.map(h => h.avgSurfaceTemperature),
+            fill: false
+        });
+    }
+
+    buildLineChart("iceChart", labels, iceDatasets, chart => iceChart = chart);
+    buildLineChart("tempChart", labels, tempDatasets, chart => tempChart = chart);
 }
 
-async function loadCharts() {
-    await drawChart("DowsLake");
-    await drawChart("FifthAvenue");
-    await drawChart("NAC");
+function getColorForLocation(loc) {
+    return {
+        "DowsLake": "#8e44ad",
+        "FifthAvenue": "#e91e63",
+        "NAC": "#3498db"
+    }[loc] || "#000";
 }
 
-async function drawChart(location) {
-    const res = await fetch(historyUrl + location);
-    const data = await res.json();
+function buildLineChart(canvasId, labels, datasets, saveChartFn) {
+    const ctx = document.getElementById(canvasId);
 
-    const labels = data.map(d => d.windowEnd);
-    const ice = data.map(d => d.avgIceThickness);
-    const temp = data.map(d => d.avgSurfaceTemp);
+    if (saveChartFn === iceChart && iceChart) iceChart.destroy();
+    if (saveChartFn === tempChart && tempChart) tempChart.destroy();
 
-    // ICE CHART
-    new Chart(document.getElementById(location + "-ice-chart"), {
+    const newChart = new Chart(ctx, {
         type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: location,
-                data: ice,
-                borderColor: "#7d5fff",
-                fill: false
-            }]
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            scales: {
+                x: { ticks: { maxRotation: 0, minRotation: 0 } }
+            }
         }
     });
 
-    // TEMP CHART
-    new Chart(document.getElementById(location + "-temp-chart"), {
-        type: "line",
-        data: {
-            labels,
-            datasets: [{
-                label: location,
-                data: temp,
-                borderColor: "#1dd1a1",
-                fill: false
-            }]
-        }
-    });
+    saveChartFn(newChart);
 }
 
-loadData();
-setInterval(loadData, 10000); // refresh every 10 sec
+loadDashboard();
+setInterval(loadDashboard, 5000);

@@ -1,61 +1,44 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const { CosmosClient } = require("@azure/cosmos");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { CosmosClient } = require('@azure/cosmos');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
-app.use(express.json());
 app.use(express.static("public"));
 
-const endpoint = process.env.COSMOS_ENDPOINT;
-const key = process.env.COSMOS_KEY;
-const databaseId = "RideauCanalDB";
-const containerId = "SensorAggregations";
+const client = new CosmosClient({
+    endpoint: process.env.COSMOS_ENDPOINT,
+    key: process.env.COSMOS_KEY
+});
 
-const client = new CosmosClient({ endpoint, key });
-const container = client.database(databaseId).container(containerId);
+const container = client
+    .database("RideauCanalDB")
+    .container("SensorAggregations");
 
-// ------------------- GET LATEST -------------------
 app.get("/api/latest", async (req, res) => {
-    try {
-        const query = "SELECT * FROM c ORDER BY c.windowEnd DESC";
+    const query = "SELECT * FROM c ORDER BY c.windowEnd DESC";
+    const { resources } = await container.items.query(query).fetchAll();
 
-        const { resources } = await container.items.query(query).fetchAll();
+    const latest = {};
+    resources.forEach(item => {
+        if (!latest[item.location]) latest[item.location] = item;
+    });
 
-        const latest = {};
-        for (const row of resources) {
-            if (!latest[row.location]) {
-                latest[row.location] = row;
-            }
-        }
-
-        res.json(Object.values(latest));
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error fetching latest data");
-    }
+    res.json(Object.values(latest));
 });
 
-// ------------------- HISTORY (1 hour default) -------------------
-app.get("/api/history/:location", async (req, res) => {
-    const location = req.params.location;
+app.get("/api/history/:loc", async (req, res) => {
+    const loc = req.params.loc;
+    const query = {
+        query: "SELECT * FROM c WHERE c.location=@loc ORDER BY c.windowEnd DESC",
+        parameters: [{ name: "@loc", value: loc }]
+    };
 
-    try {
-        const query = {
-            query: "SELECT * FROM c WHERE c.location = @loc ORDER BY c.windowEnd DESC",
-            parameters: [{ name: "@loc", value: location }]
-        };
-
-        const { resources } = await container.items.query(query).fetchAll();
-        res.json(resources.reverse());  // oldest → newest
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error fetching history");
-    }
+    const { resources } = await container.items.query(query).fetchAll();
+    res.json(resources.slice(0, 12).reverse());
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

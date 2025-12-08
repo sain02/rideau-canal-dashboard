@@ -1,116 +1,101 @@
-// === DASHBOARD CONFIG ===
+const API_LATEST = "/api/latest";
+const API_HISTORY = "/api/history";
 
-// Safety color rules
-const STATUS_COLORS = {
-    Safe: "#8EE894",
-    Caution: "#F4D06F",
-    Unsafe: "#E57373"
-};
+let iceChart, tempChart;
 
-// Refresh dashboard every 5 seconds
-setInterval(fetchDashboardData, 5000);
+async function fetchData() {
+    const latest = await fetch(API_LATEST).then(r => r.json());
+    const history = await fetch(API_HISTORY).then(r => r.json());
 
-// On load
-fetchDashboardData();
-
-// === MAIN FUNCTION ===
-async function fetchDashboardData() {
-    try {
-        const res = await fetch("/api/latest");
-        const data = await res.json();
-
-        updateLocationCards(data.locations);
-        updateStatusBanner(data.overallStatus);
-
-        // Trend graphs
-        renderLineGraph("iceTrendChart", data.trends.ice, "Ice Thickness (cm)");
-        renderLineGraph("tempTrendChart", data.trends.temp, "Surface Temp (°C)");
-        renderLineGraph("snowTrendChart", data.trends.snow, "Snow (cm)");
-
-        document.getElementById("lastUpdated").innerText =
-            new Date().toLocaleTimeString();
-
-    } catch (err) {
-        console.error("Dashboard Error:", err);
-    }
+    updateCards(latest);
+    updateCharts(history);
 }
 
-// === UPDATE TOP STATUS BANNER ===
-function updateStatusBanner(status) {
-    const bar = document.getElementById("statusBanner");
-    bar.innerText = status;
-    bar.style.background = STATUS_COLORS[status] || "#ccc";
-}
+function updateCards(data) {
+    const locations = ["DowsLake", "FifthAvenue", "NAC"];
 
-// === UPDATE LOCATION CARDS ===
-function updateLocationCards(locations) {
-    ["DowsLake", "FifthAvenue", "NAC"].forEach(loc => {
-        const d = locations[loc];
+    document.getElementById("lastUpdated").textContent = new Date().toLocaleTimeString();
 
-        document.querySelector(`.${loc}-status`).innerText = d.status;
-        document.querySelector(`.${loc}-status`).style.background =
-            STATUS_COLORS[d.status];
+    let overallStatus = "Safe";
 
-        document.querySelector(`.${loc}-ice`).innerText =
-            d.iceThickness.toFixed(2);
+    locations.forEach(loc => {
+        const cardId = loc.toLowerCase().replace("avenue", "").replace("dowslake", "dows");
 
-        document.querySelector(`.${loc}-temp`).innerText =
-            d.surfaceTemp.toFixed(2);
+        document.getElementById(`ice-${cardId}`).textContent = data[loc].iceThickness.toFixed(2);
+        document.getElementById(`temp-${cardId}`).textContent = data[loc].surfaceTemp.toFixed(2);
+        document.getElementById(`snow-${cardId}`).textContent = data[loc].snow.toFixed(2);
 
-        document.querySelector(`.${loc}-snow`).innerText =
-            d.snow.toFixed(2);
+        let badge = document.getElementById(`badge-${cardId}`);
+        let status = data[loc].status;
+
+        badge.textContent = status;
+
+        badge.className = "badge " + status.toLowerCase();
+
+        if (status === "Unsafe") overallStatus = "Unsafe";
+        else if (status === "Caution" && overallStatus !== "Unsafe") overallStatus = "Caution";
     });
+
+    updateBanner(overallStatus);
 }
 
-// === RENDER SIMPLE LINE GRAPH (Chart.js) ===
-function renderLineGraph(canvasId, trendData, labelTitle) {
-    const ctx = document.getElementById(canvasId).getContext("2d");
+function updateBanner(status) {
+    let banner = document.getElementById("canalStatusBanner");
 
-    const labels = trendData.timestamps;
+    banner.textContent = status;
 
-    const dataset = [
-        {
-            label: "Dow's Lake",
-            data: trendData.DowsLake,
-            borderColor: "#4CAF50",
-            fill: false,
-            tension: 0.4
-        },
-        {
-            label: "Fifth Avenue",
-            data: trendData.FifthAvenue,
-            borderColor: "#F72585",
-            fill: false,
-            tension: 0.4
-        },
-        {
-            label: "NAC",
-            data: trendData.NAC,
-            borderColor: "#7B2CBF",
-            fill: false,
-            tension: 0.4
-        }
-    ];
+    if (status === "Safe") banner.style.background = "#b0ffb0";
+    else if (status === "Caution") banner.style.background = "#ffe28a";
+    else banner.style.background = "#ff9a9a";
+}
 
-    // Destroy old charts to prevent duplicates
-    if (window[canvasId]) window[canvasId].destroy();
+function updateCharts(history) {
+    const times = history.timestamps;
 
-    window[canvasId] = new Chart(ctx, {
+    const dowsIce = history.DowsLake.ice;
+    const fifthIce = history.FifthAvenue.ice;
+    const nacIce = history.NAC.ice;
+
+    const dowsTemp = history.DowsLake.temp;
+    const fifthTemp = history.FifthAvenue.temp;
+    const nacTemp = history.NAC.temp;
+
+    // Colors same as professor dashboard
+    const colors = {
+        dows: "#4CAF50",
+        fifth: "#FF4081",
+        nac: "#8E44AD"
+    };
+
+    // Create Ice Chart
+    if (iceChart) iceChart.destroy();
+    iceChart = new Chart(document.getElementById("iceChart"), {
         type: "line",
-        data: { labels, datasets: dataset },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: "top"
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    title: { display: true, text: labelTitle }
-                }
-            }
+        data: {
+            labels: times,
+            datasets: [
+                { label: "Dow's Lake", data: dowsIce, borderColor: colors.dows, fill: false },
+                { label: "Fifth Avenue", data: fifthIce, borderColor: colors.fifth, fill: false },
+                { label: "NAC", data: nacIce, borderColor: colors.nac, fill: false }
+            ]
+        }
+    });
+
+    // Create Temp Chart
+    if (tempChart) tempChart.destroy();
+    tempChart = new Chart(document.getElementById("tempChart"), {
+        type: "line",
+        data: {
+            labels: times,
+            datasets: [
+                { label: "Dow's Lake", data: dowsTemp, borderColor: colors.dows, fill: false },
+                { label: "Fifth Avenue", data: fifthTemp, borderColor: colors.fifth, fill: false },
+                { label: "NAC", data: nacTemp, borderColor: colors.nac, fill: false }
+            ]
         }
     });
 }
+
+// Auto refresh every 5 seconds
+fetchData();
+setInterval(fetchData, 5000);

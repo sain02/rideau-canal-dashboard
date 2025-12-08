@@ -1,98 +1,84 @@
 async function loadDashboard() {
-    try {
-        const res = await fetch("/api/latest");
-        const latest = await res.json();
+    document.getElementById("lastUpdated").innerHTML = new Date().toLocaleTimeString();
 
-        updateCards(latest);
-        updateCharts();
-        document.getElementById("updatedTime").textContent = new Date().toLocaleTimeString();
+    const latestRes = await fetch("/api/latest");
+    const latest = await latestRes.json();
 
-    } catch (err) {
-        console.error("Dashboard load error:", err);
-    }
-}
+    const trendRes = await fetch("/api/trend");
+    const trend = await trendRes.json();
 
-function updateCards(data) {
-    data.forEach(loc => {
-        const id = loc.location.replace(/ /g, "") + "Card";
-
-        const status = loc.iceThickness > 30 ? "Safe"
-                     : loc.iceThickness > 25 ? "Caution"
-                     : "Unsafe";
-
-        const badgeClass =
-            status === "Safe" ? "badge-safe" :
-            status === "Caution" ? "badge-caution" : "badge-unsafe";
-
-        document.getElementById(id).innerHTML = `
-            <h2>${loc.location}</h2>
-            <span class="${badgeClass}">${status}</span>
-            <p><b>Ice Thickness:</b> ${loc.iceThickness.toFixed(2)} cm</p>
-            <p><b>Surface Temp:</b> ${loc.surfaceTemp.toFixed(2)} °C</p>
-            <p><b>Snow:</b> ${loc.snow.toFixed(2)} cm</p>
-        `;
-    });
-}
-
-// --------------------- CHART SETUP -----------------------------
-
-let iceChart, tempChart;
-
-async function updateCharts() {
+    // Locations
     const locations = ["Dows Lake", "Fifth Avenue", "NAC"];
-    const iceData = {};
-    const tempData = {};
 
-    for (let loc of locations) {
-        const res = await fetch(`/api/history/${loc}?hours=1`);
-        const hist = await res.json();
+    // Fill cards
+    locations.forEach(loc => {
+        const item = latest.find(x => x.location === loc);
+        if (!item) return;
 
-        iceData[loc] = hist.map(h => h.iceThickness);
-        tempData[loc] = hist.map(h => h.surfaceTemp);
-    }
+        document.getElementById(`${loc.replace(" ", "")}-ice`).innerHTML = item.iceThickness.toFixed(2);
+        document.getElementById(`${loc.replace(" ", "")}-temp`).innerHTML = item.surfaceTemp.toFixed(2);
+        document.getElementById(`${loc.replace(" ", "")}-snow`).innerHTML = item.snow.toFixed(2);
 
-    renderIceChart(iceData);
-    renderTempChart(tempData);
-}
+        // Status
+        let status = "Safe", color = "#b2f2a2";
+        if (item.iceThickness < 25) { status = "Caution"; color = "#ffda77"; }
+        if (item.iceThickness < 15) { status = "Unsafe"; color = "#ff8a80"; }
 
-function renderIceChart(data) {
-    const ctx = document.getElementById("iceChart");
+        document.getElementById(`${loc.replace(" ", "")}-status`).innerHTML = status;
+        document.getElementById(`${loc.replace(" ", "")}-status`).style.background = color;
+    });
 
-    if (iceChart) iceChart.destroy();
+    // -------- TREND CHARTS ----------
+    const times = trend.map(x => x.windowEnd);
 
-    iceChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: [...Array(data["Dows Lake"].length).keys()],
-            datasets: [
-                { label: "Dows Lake", borderColor: "#8E44AD", data: data["Dows Lake"] },
-                { label: "Fifth Avenue", borderColor: "#E74C3C", data: data["Fifth Avenue"] },
-                { label: "NAC", borderColor: "#3498DB", data: data["NAC"] }
-            ]
+    const datasetsIce = [
+        {
+            label: "Dows Lake",
+            borderColor: "#7b2cbf",
+            data: trend.filter(x => x.location === "Dows Lake").map(x => x.iceThickness)
+        },
+        {
+            label: "Fifth Avenue",
+            borderColor: "#ff6b6b",
+            data: trend.filter(x => x.location === "Fifth Avenue").map(x => x.iceThickness)
+        },
+        {
+            label: "NAC",
+            borderColor: "#4dabf7",
+            data: trend.filter(x => x.location === "NAC").map(x => x.iceThickness)
         }
+    ];
+
+    new Chart(document.getElementById("iceChart"), {
+        type: "line",
+        data: { labels: times, datasets: datasetsIce },
+        options: { responsive: true }
+    });
+
+    const datasetsTemp = [
+        {
+            label: "Dows Lake",
+            borderColor: "#2b9348",
+            data: trend.filter(x => x.location === "Dows Lake").map(x => x.surfaceTemp)
+        },
+        {
+            label: "Fifth Avenue",
+            borderColor: "#adb5bd",
+            data: trend.filter(x => x.location === "Fifth Avenue").map(x => x.surfaceTemp)
+        },
+        {
+            label: "NAC",
+            borderColor: "#5e60ce",
+            data: trend.filter(x => x.location === "NAC").map(x => x.surfaceTemp)
+        }
+    ];
+
+    new Chart(document.getElementById("tempChart"), {
+        type: "line",
+        data: { labels: times, datasets: datasetsTemp },
+        options: { responsive: true }
     });
 }
 
-function renderTempChart(data) {
-    const ctx = document.getElementById("tempChart");
-
-    if (tempChart) tempChart.destroy();
-
-    tempChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: [...Array(data["Dows Lake"].length).keys()],
-            datasets: [
-                { label: "Dows Lake", borderColor: "#16A085", data: data["Dows Lake"] },
-                { label: "Fifth Avenue", borderColor: "#F5B041", data: data["Fifth Avenue"] },
-                { label: "NAC", borderColor: "#9B59B6", data: data["NAC"] }
-            ]
-        }
-    });
-}
-
-// Auto refresh every 5 seconds
-setInterval(loadDashboard, 5000);
-
-// Load on startup
 loadDashboard();
+setInterval(loadDashboard, 5000);

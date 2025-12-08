@@ -2,32 +2,46 @@
 <html>
 <head>
     <title>Rideau Canal Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="canal-status" id="canalStatus">Safe</div>
-    <p class="updated-time">Last Updated: <span id="updatedTime">--</span></p>
 
-    <div class="cards-container">
-        <div class="card" id="DowsLakeCard"></div>
-        <div class="card" id="FifthAvenueCard"></div>
-        <div class="card" id="NACCard"></div>
+<h1 id="globalStatus">Safe</h1>
+<p>Last Updated: <span id="lastUpdated">--</span></p>
+
+<div class="cards">
+    <div class="card">
+        <h2>Dows Lake</h2>
+        <span id="DowsLake-status" class="status">--</span>
+        <p><b>Ice Thickness:</b> <span id="DowsLake-ice">--</span> cm</p>
+        <p><b>Surface Temp:</b> <span id="DowsLake-temp">--</span> °C</p>
+        <p><b>Snow:</b> <span id="DowsLake-snow">--</span> cm</p>
     </div>
 
-    <div class="chart-row">
-        <div class="chart-card">
-            <h2>Ice Thickness Trend (Last Hour)</h2>
-            <canvas id="iceChart"></canvas>
-        </div>
-
-        <div class="chart-card">
-            <h2>Temperature Trend (Last Hour)</h2>
-            <canvas id="tempChart"></canvas>
-        </div>
+    <div class="card">
+        <h2>Fifth Avenue</h2>
+        <span id="FifthAvenue-status" class="status">--</span>
+        <p><b>Ice Thickness:</b> <span id="FifthAvenue-ice">--</span> cm</p>
+        <p><b>Surface Temp:</b> <span id="FifthAvenue-temp">--</span> °C</p>
+        <p><b>Snow:</b> <span id="FifthAvenue-snow">--</span> cm</p>
     </div>
 
-    <script src="app.js"></script>
+    <div class="card">
+        <h2>NAC</h2>
+        <span id="NAC-status" class="status">--</span>
+        <p><b>Ice Thickness:</b> <span id="NAC-ice">--</span> cm</p>
+        <p><b>Surface Temp:</b> <span id="NAC-temp">--</span> °C</p>
+        <p><b>Snow:</b> <span id="NAC-snow">--</span> cm</p>
+    </div>
+</div>
+
+<h2>Ice Thickness Trend (Last Hour)</h2>
+<canvas id="iceChart"></canvas>
+
+<h2>Temperature Trend (Last Hour)</h2>
+<canvas id="tempChart"></canvas>
+
+<script src="app.js"></script>
 </body>
 </html>

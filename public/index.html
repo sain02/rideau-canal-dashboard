@@ -1,67 +1,38 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rideau Canal Sensor Dashboard</title>
-  styles.css
+  <meta charset="utf-8">
+  <title>Rideau Canal Skateway Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Rideau Canal — Sensor Dashboard</h1>
-    <div class="controls">
-      <button id="refreshBtn" title="Refresh data">⟳ Refresh</button>
+
+  <h1>Rideau Canal Skateway Dashboard</h1>
+  <h3 id="overallStatus" class="status-badge">Loading...</h3>
+  <p id="lastUpdated"></p>
+
+  <!-- TOP DATA CARDS -->
+  <div class="card-container">
+    <div class="card" id="card-DowsLake"></div>
+    <div class="card" id="card-FifthAvenue"></div>
+    <div class="card" id="card-NAC"></div>
+  </div>
+
+  <!-- CHART SECTION -->
+  <div class="charts">
+    <div class="chart-box">
+      <h3>Ice Thickness Trend (Last Hour)</h3>
+      <canvas id="iceChart"></canvas>
     </div>
-  </header>
+    <div class="chart-box">
+      <h3>Temperature Trend (Last Hour)</h3>
+      <canvas id="tempChart"></canvas>
+    </div>
+  </div>
 
-  <main>
-    <section class="panel">
-      <h2>Latest Aggregations</h2>
-      <p class="hint">Shows the most recent window per location from Cosmos DB.</p>
-      <div id="latestList" class="cards"></div>
-    </section>
-
-    <section class="panel">
-      <h2>History (last hour)</h2>
-      <div class="history-controls">
-        <label for="locationSelect">Location:</label>
-        <select id="locationSelect"></select>
-        <label for="limitInput">Points:</label>
-        <input id="limitInput" type="number" min="5" max="300" value="60" />
-        <button id="loadHistoryBtn">Load History</button>
-      </div>
-
-      <div class="charts">
-        <div class="chart">
-          <h3>Temperature</h3>
-          <canvas id="tempChart" width="800" height="250"></canvas>
-        </div>
-        <div class="chart">
-          <h3>Humidity</h3>
-          <canvas id="humChart" width="800" height="250"></canvas>
-        </div>
-      </div>
-
-      <table id="historyTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>windowEnd</th>
-            <th>temperature</th>
-            <th>humidity</th>
-            <th>location</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </main>
-
-  <footer>
-    <small>© Rideau Canal Dashboard</small>
-  </footer>
-
-  app.js</script>
+  <script src="app.js"></script>
 </body>
 </html>

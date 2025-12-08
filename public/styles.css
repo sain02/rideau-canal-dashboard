@@ -1,110 +1,77 @@
-
-:root {
-  --bg: #0f172a;        /* slate-900 */
-  --panel: #111827;     /* gray-900 */
-  --card: #1f2937;      /* gray-800 */
-  --text: #e5e7eb;      /* gray-200 */
-  --muted: #9ca3af;     /* gray-400 */
-  --accent: #22d3ee;    /* cyan-400 */
-  --accent2: #a78bfa;   /* violet-400 */
-  --danger: #ef4444;    /* red-500 */
-  --ok: #22c55e;        /* green-500 */
-}
-
-* { box-sizing: border-box; }
-
 body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-  background: var(--bg);
-  color: var(--text);
+  font-family: Arial, sans-serif;
+  background: #eee9ff;
+  padding: 20px;
 }
 
-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 24px;
-  border-bottom: 1px solid #1f2937;
-  background: linear-gradient(90deg, #0f172a, #111827);
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-h1 { margin: 0; font-size: 22px; }
-h2 { margin: 0 0 8px; font-size: 18px; }
-h3 { margin: 8px 0; font-size: 16px; }
-
-.controls button, .history-controls button {
-  background: var(--accent);
-  border: none; color: #082f49;
-  padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;
-}
-.controls button:hover,
-.history-controls button:hover { filter: brightness(1.15); }
-
-main {
-  max-width: 1200px; margin: 24px auto; padding: 0 16px;
+.status-badge {
+  text-align: center;
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 8px;
+  width: 200px;
+  margin: 0 auto;
+  font-weight: bold;
 }
 
-.panel {
-  background: var(--panel);
-  padding: 16px; border-radius: 10px; margin-bottom: 20px;
-  box-shadow: 0 0 0 1px #1f2937 inset;
+.status-safe {
+  background: #c2f7c2;
+  color: #0b7a0b;
 }
 
-.hint { color: var(--muted); margin: 4px 0 12px; }
+.status-caution {
+  background: #ffe8a6;
+  color: #9f6a00;
+}
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+.status-unsafe {
+  background: #ffb6b6;
+  color: #8b0000;
+}
+
+/* CARD STYLE */
+.card-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
 .card {
-  background: var(--card);
+  background: white;
+  padding: 20px;
+  width: 30%;
   border-radius: 10px;
-  padding: 12px;
-  border: 1px solid #374151;
+  border: 2px solid #cccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.card .title { font-weight: 700; }
-.card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
-.card .metrics { display: flex; gap: 12px; margin-top: 8px; }
-.metric {
-  flex: 1; background: #111827; padding: 8px; border-radius: 6px; text-align: center;
-  border: 1px solid #1f2937;
-}
-.metric .label { color: var(--muted); font-size: 12px; }
-.metric .value { font-size: 18px; font-weight: 700; }
-
-.history-controls {
-  display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
+.card h2 {
+  margin-top: 0;
 }
 
-.history-controls select, .history-controls input {
-  background: #0b1220; color: var(--text);
-  border: 1px solid #374151; border-radius: 6px; padding: 6px 8px;
+.card .status-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-.charts { display: grid; gap: 16px; }
-.chart {
-  background: var(--card);
-  padding: 12px; border-radius: 10px; border: 1px solid #374151;
+.chart-box {
+  background: white;
+  padding: 20px;
+  margin-top: 25px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-#historyTable {
-  width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;
-}
-#historyTable th, #historyTable td {
-  border-bottom: 1px solid #1f2937; padding: 6px 8px; text-align: left;
-}
-#historyTable thead { background: #0b1220; }
-#historyTable tbody tr:hover { background: #0b1728; }
-
-footer {
-  padding: 16px; text-align: center; color: var(--muted);
-  border-top: 1px solid #1f2937; margin-top: 20px;
-}
-
-/* Responsive tweaks */
-@media (max-width: 640px) {
-  .metric .value { font-size: 16px; }
-  .charts canvas { width: 100% !important; height: auto !important; }
+.charts {
+  display: flex;
+  gap: 30px;
 }

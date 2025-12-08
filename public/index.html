@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rideau Canal Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <div class="canal-status" id="canalStatus">Safe</div>
+    <p class="updated-time">Last Updated: <span id="updatedTime">--</span></p>
 
-    <header>
-        <h1 id="canalStatus">Safe</h1>
-        <p>Last Updated: <span id="lastUpdated">--</span></p>
-    </header>
+    <div class="cards-container">
+        <div class="card" id="DowsLakeCard"></div>
+        <div class="card" id="FifthAvenueCard"></div>
+        <div class="card" id="NACCard"></div>
+    </div>
 
-    <div id="cardsContainer" class="cards"></div>
-
-    <div class="charts-row">
+    <div class="chart-row">
         <div class="chart-card">
             <h2>Ice Thickness Trend (Last Hour)</h2>
             <canvas id="iceChart"></canvas>

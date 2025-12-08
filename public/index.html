@@ -1,55 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Rideau Canal Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8">
+  <title>Rideau Canal Skateway Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div id="canalStatus" class="statusBox">Safe</div>
-    <p id="lastUpdated">Last Updated: --</p>
+  <h1>Rideau Canal Skateway Dashboard</h1>
+  <h3 id="overallStatus" class="status-badge">Loading...</h3>
+  <p id="lastUpdated"></p>
 
-    <div class="cardContainer">
-        <div class="card" id="dowsLakeCard">
-            <h2>Dow's Lake</h2>
-            <div class="badge" id="badgeDows">--</div>
-            <p><b>Ice Thickness:</b> <span id="dowsIce">--</span> cm</p>
-            <p><b>Surface Temp:</b> <span id="dowsTemp">--</span> °C</p>
-            <p><b>Snow:</b> <span id="dowsSnow">--</span> cm</p>
-        </div>
+  <!-- TOP DATA CARDS -->
+  <div class="card-container">
+    <div class="card" id="card-DowsLake"></div>
+    <div class="card" id="card-FifthAvenue"></div>
+    <div class="card" id="card-NAC"></div>
+  </div>
 
-        <div class="card" id="fifthAveCard">
-            <h2>Fifth Avenue</h2>
-            <div class="badge" id="badgeFifth">--</div>
-            <p><b>Ice Thickness:</b> <span id="fifthIce">--</span> cm</p>
-            <p><b>Surface Temp:</b> <span id="fifthTemp">--</span> °C</p>
-            <p><b>Snow:</b> <span id="fifthSnow">--</span> cm</p>
-        </div>
-
-        <div class="card" id="nacCard">
-            <h2>NAC</h2>
-            <div class="badge" id="badgeNac">--</div>
-            <p><b>Ice Thickness:</b> <span id="nacIce">--</span> cm</p>
-            <p><b>Surface Temp:</b> <span id="nacTemp">--</span> °C</p>
-            <p><b>Snow:</b> <span id="nacSnow">--</span> cm</p>
-        </div>
+  <!-- CHART SECTION -->
+  <div class="charts">
+    <div class="chart-box">
+      <h3>Ice Thickness Trend (Last Hour)</h3>
+      <canvas id="iceChart"></canvas>
     </div>
-
-    <div class="charts">
-        <div class="chartBox">
-            <h3>Ice Thickness Trend (Last Hour)</h3>
-            <canvas id="iceChart"></canvas>
-        </div>
-
-        <div class="chartBox">
-            <h3>Temperature Trend (Last Hour)</h3>
-            <canvas id="tempChart"></canvas>
-        </div>
+    <div class="chart-box">
+      <h3>Temperature Trend (Last Hour)</h3>
+      <canvas id="tempChart"></canvas>
     </div>
+  </div>
 
-    <script src="app.js"></script>
-
+  <script src="app.js"></script>
 </body>
 </html>

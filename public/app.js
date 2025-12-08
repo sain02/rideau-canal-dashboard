@@ -1,87 +1,121 @@
-async function loadDashboard() {
-    try {
-        const latestRes = await fetch("/api/latest");
-        const latest = await latestRes.json();
+const locations = ["DowsLake", "FifthAvenue", "NAC"];
 
-        const historyDows = await fetch("/api/history/DowsLake?hours=1").then(r => r.json());
-        const historyFifth = await fetch("/api/history/FifthAvenue?hours=1").then(r => r.json());
-        const historyNac = await fetch("/api/history/NAC?hours=1").then(r => r.json());
+// Get DOM elements
+const overallStatusEl = document.getElementById("overallStatus");
+const lastUpdatedEl = document.getElementById("lastUpdated");
 
-        document.getElementById("lastUpdated").innerHTML =
-            "Last Updated: " + new Date().toLocaleTimeString();
+// CHART references
+let iceChart, tempChart;
 
-        let canalStatus = "Safe";
-        document.getElementById("canalStatus").innerHTML = canalStatus;
+// Load latest data
+async function loadLatest() {
+  const res = await fetch("/api/latest");
+  const data = await res.json();
 
-        latest.forEach(loc => {
-            if (loc.location === "DowsLake") {
-                updateCard("dows", loc);
-            }
-            if (loc.location === "FifthAvenue") {
-                updateCard("fifth", loc);
-            }
-            if (loc.location === "NAC") {
-                updateCard("nac", loc);
-            }
-        });
+  let overallStatus = "Safe";
+  let overallClass = "status-safe";
 
-        drawIceChart(historyDows, historyFifth, historyNac);
-        drawTempChart(historyDows, historyFifth, historyNac);
+  data.forEach(d => {
+    // Create card UI
+    const card = document.getElementById(`card-${d.location}`);
+    card.innerHTML = `
+      <h2>${prettyName(d.location)}</h2>
+      <span class="status-tag ${tagClass(d.safetyStatus)}">${d.safetyStatus}</span>
+      <p><strong>Ice Thickness:</strong> ${d.avgIceThickness} cm</p>
+      <p><strong>Surface Temp:</strong> ${d.avgSurfaceTemperature} °C</p>
+      <p><strong>Snow:</strong> ${d.maxSnowAccumulation} cm</p>
+    `;
 
-    } catch (err) {
-        console.error("Dashboard error:", err);
+    // Determine overall canal status
+    if (d.safetyStatus === "Unsafe") {
+      overallStatus = "Unsafe";
+      overallClass = "status-unsafe";
+    } else if (d.safetyStatus === "Caution" && overallStatus !== "Unsafe") {
+      overallStatus = "Caution";
+      overallClass = "status-caution";
     }
+
+    lastUpdatedEl.textContent = "Last Updated: " + new Date().toLocaleTimeString();
+  });
+
+  overallStatusEl.textContent = overallStatus;
+  overallStatusEl.className = `status-badge ${overallClass}`;
 }
 
-function updateCard(prefix, data) {
-    document.getElementById(prefix + "Ice").innerHTML = data.iceThickness.toFixed(2);
-    document.getElementById(prefix + "Temp").innerHTML = data.surfaceTemp.toFixed(2);
-    document.getElementById(prefix + "Snow").innerHTML = data.snow.toFixed(2);
-
-    const badge = document.getElementById("badge" + prefix.charAt(0).toUpperCase() + prefix.slice(1));
-
-    if (data.iceThickness >= 30) {
-        badge.innerHTML = "Safe";
-        badge.className = "badge safe";
-    } else if (data.iceThickness >= 25) {
-        badge.innerHTML = "Caution";
-        badge.className = "badge caution";
-    } else {
-        badge.innerHTML = "Unsafe";
-        badge.className = "badge unsafe";
-    }
+// Convert location to pretty label
+function prettyName(loc) {
+  if (loc === "DowsLake") return "Dow's Lake";
+  if (loc === "FifthAvenue") return "Fifth Avenue";
+  return "NAC";
 }
 
+// Map color badge classes
+function tagClass(status) {
+  if (status === "Safe") return "status-safe";
+  if (status === "Caution") return "status-caution";
+  return "status-unsafe";
+}
 
-// ------------------ CHART DRAW FUNCTIONS ---------------------
+// Load chart data
+async function loadCharts() {
+  const datasetsIce = [];
+  const datasetsTemp = [];
 
-function drawIceChart(dl, fa, nc) {
-    new Chart(document.getElementById("iceChart"), {
-        type: "line",
-        data: {
-            labels: dl.map(x => x.windowEnd),
-            datasets: [
-                { label: "Dows Lake", borderColor: "#8e5ea2", data: dl.map(x => x.iceThickness) },
-                { label: "Fifth Avenue", borderColor: "#e94f37", data: fa.map(x => x.iceThickness) },
-                { label: "NAC", borderColor: "#4ea8de", data: nc.map(x => x.iceThickness) }
-            ]
-        }
+  for (let loc of locations) {
+    const res = await fetch(`/api/history/${loc}`);
+    const data = await res.json();
+
+    const labels = data.map(d => d.windowEnd).reverse();
+    const ice = data.map(d => d.avgIceThickness).reverse();
+    const temp = data.map(d => d.avgSurfaceTemperature).reverse();
+
+    datasetsIce.push({
+      label: prettyName(loc),
+      data: ice,
+      borderWidth: 2,
+      borderColor: randomColor(),
+      fill: false
     });
-}
 
-function drawTempChart(dl, fa, nc) {
-    new Chart(document.getElementById("tempChart"), {
-        type: "line",
-        data: {
-            labels: dl.map(x => x.windowEnd),
-            datasets: [
-                { label: "Dows Lake", borderColor: "#4caf50", data: dl.map(x => x.surfaceTemp) },
-                { label: "Fifth Avenue", borderColor: "#777", data: fa.map(x => x.surfaceTemp) },
-                { label: "NAC", borderColor: "#6f42c1", data: nc.map(x => x.surfaceTemp) }
-            ]
-        }
+    datasetsTemp.push({
+      label: prettyName(loc),
+      data: temp,
+      borderWidth: 2,
+      borderColor: randomColor(),
+      fill: false
     });
+
+    drawCharts(labels, datasetsIce, datasetsTemp);
+  }
 }
 
-loadDashboard();
-setInterval(loadDashboard, 5000);
+function randomColor() {
+  return "#" + Math.floor(Math.random()*16777215).toString(16);
+}
+
+// Draw Charts
+function drawCharts(labels, iceData, tempData) {
+  const iceCtx = document.getElementById("iceChart");
+  const tempCtx = document.getElementById("tempChart");
+
+  if (iceChart) iceChart.destroy();
+  if (tempChart) tempChart.destroy();
+
+  iceChart = new Chart(iceCtx, {
+    type: "line",
+    data: { labels, datasets: iceData }
+  });
+
+  tempChart = new Chart(tempCtx, {
+    type: "line",
+    data: { labels, datasets: tempData }
+  });
+}
+
+// Auto-refresh
+loadLatest();
+loadCharts();
+setInterval(() => {
+  loadLatest();
+  loadCharts();
+}, 30000);

@@ -1,58 +1,77 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2eaff;
-    margin: 0;
-    padding: 20px;
-    text-align: center;
+  font-family: Arial, sans-serif;
+  background: #eee9ff;
+  padding: 20px;
 }
 
-.statusBox {
-    background-color: #b5f5b6;
-    padding: 15px;
-    width: 200px;
-    margin: auto;
-    border-radius: 10px;
-    font-size: 28px;
-    font-weight: bold;
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.cardContainer {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
+.status-badge {
+  text-align: center;
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 8px;
+  width: 200px;
+  margin: 0 auto;
+  font-weight: bold;
+}
+
+.status-safe {
+  background: #c2f7c2;
+  color: #0b7a0b;
+}
+
+.status-caution {
+  background: #ffe8a6;
+  color: #9f6a00;
+}
+
+.status-unsafe {
+  background: #ffb6b6;
+  color: #8b0000;
+}
+
+/* CARD STYLE */
+.card-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
 .card {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    width: 28%;
-    text-align: left;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background: white;
+  padding: 20px;
+  width: 30%;
+  border-radius: 10px;
+  border: 2px solid #cccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-.badge {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-bottom: 10px;
+.card h2 {
+  margin-top: 0;
 }
 
-.badge.safe { background-color: #b7f7b2; }
-.badge.caution { background-color: #fce29f; }
-.badge.unsafe { background-color: #f8a3a3; }
+.card .status-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.chart-box {
+  background: white;
+  padding: 20px;
+  margin-top: 25px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
 
 .charts {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 40px;
-}
-
-.chartBox {
-    background: white;
-    width: 45%;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 30px;
 }

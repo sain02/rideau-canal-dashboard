@@ -1,66 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rideau Canal Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Rideau Canal Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
+  <h2 id="statusBar">Loading...</h2>
+  <p id="updatedTime">Last Updated: --</p>
 
-    <!-- Canal Status Banner -->
-    <div id="canalStatusBanner" class="status-banner">Loading...</div>
+  <div id="cards">
+    <div class="card" id="card-dows"></div>
+    <div class="card" id="card-fifth"></div>
+    <div class="card" id="card-nac"></div>
+  </div>
 
-    <!-- Last Updated -->
-    <div class="updated-box">
-        Last Updated: <span id="lastUpdated">--</span>
-    </div>
+  <div class="chart-container">
+    <canvas id="iceChart"></canvas>
+  </div>
 
-    <!-- Location Cards -->
-    <div class="cards-container">
+  <div class="chart-container">
+    <canvas id="tempChart"></canvas>
+  </div>
 
-        <div class="card" id="card-dows">
-            <h2>Dow's Lake</h2>
-            <span class="badge" id="badge-dows">--</span>
-            <p><strong>Ice Thickness:</strong> <span id="ice-dows">--</span> cm</p>
-            <p><strong>Surface Temp:</strong> <span id="temp-dows">--</span> °C</p>
-            <p><strong>Snow:</strong> <span id="snow-dows">--</span> cm</p>
-        </div>
-
-        <div class="card" id="card-fifth">
-            <h2>Fifth Avenue</h2>
-            <span class="badge" id="badge-fifth">--</span>
-            <p><strong>Ice Thickness:</strong> <span id="ice-fifth">--</span> cm</p>
-            <p><strong>Surface Temp:</strong> <span id="temp-fifth">--</span> °C</p>
-            <p><strong>Snow:</strong> <span id="snow-fifth">--</span> cm</p>
-        </div>
-
-        <div class="card" id="card-nac">
-            <h2>NAC</h2>
-            <span class="badge" id="badge-nac">--</span>
-            <p><strong>Ice Thickness:</strong> <span id="ice-nac">--</span> cm</p>
-            <p><strong>Surface Temp:</strong> <span id="temp-nac">--</span> °C</p>
-            <p><strong>Snow:</strong> <span id="snow-nac">--</span> cm</p>
-        </div>
-
-    </div>
-
-    <!-- Charts -->
-    <div class="charts-row">
-
-        <div class="chart-box">
-            <h3>Ice Thickness Trend (Last Hour)</h3>
-            <canvas id="iceChart"></canvas>
-        </div>
-
-        <div class="chart-box">
-            <h3>Temperature Trend (Last Hour)</h3>
-            <canvas id="tempChart"></canvas>
-        </div>
-
-    </div>
-
-    <script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

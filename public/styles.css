@@ -1,77 +1,50 @@
 body {
+  background: #f3eaff;
   font-family: Arial, sans-serif;
-  background: #eee9ff;
-  padding: 20px;
+  text-align: center;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.status-badge {
-  text-align: center;
+.status {
+  background: #b4ffb4;
   padding: 10px;
-  font-size: 20px;
-  border-radius: 8px;
   width: 200px;
-  margin: 0 auto;
+  margin: auto;
+  border-radius: 10px;
+  font-size: 22px;
   font-weight: bold;
 }
 
-.status-safe {
-  background: #c2f7c2;
-  color: #0b7a0b;
-}
-
-.status-caution {
-  background: #ffe8a6;
-  color: #9f6a00;
-}
-
-.status-unsafe {
-  background: #ffb6b6;
-  color: #8b0000;
-}
-
-/* CARD STYLE */
 .card-container {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px;
 }
 
 .card {
   background: white;
   padding: 20px;
-  width: 30%;
-  border-radius: 10px;
-  border: 2px solid #cccc;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  width: 320px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px #ccc;
+  text-align: left;
 }
 
-.card h2 {
-  margin-top: 0;
-}
+.badge-safe { background: #b4ffb4; }
+.badge-caution { background: #ffd966; }
+.badge-unsafe { background: #ff9999; }
 
-.card .status-tag {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-weight: bold;
-  margin-bottom: 10px;
+.graph-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 40px;
 }
-
-.chart-box {
+canvas {
   background: white;
   padding: 20px;
-  margin-top: 25px;
-  border-radius: 10px;
-  border: 2px solid #ccc;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-.charts {
-  display: flex;
-  gap: 30px;
+  width: 450px !important;
+  height: 260px !important;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px #bbb;
 }

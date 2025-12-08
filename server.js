@@ -4,60 +4,59 @@ const cors = require("cors");
 const { CosmosClient } = require("@azure/cosmos");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+// ---- Cosmos DB ----
 const endpoint = process.env.COSMOS_ENDPOINT;
 const key = process.env.COSMOS_KEY;
-
-const client = new CosmosClient({ endpoint, key });
 const databaseId = "RideauCanalDB";
 const containerId = "SensorAggregations";
+
+const client = new CosmosClient({ endpoint, key });
 const container = client.database(databaseId).container(containerId);
 
-// ---------- LATEST DATA ENDPOINT (works with old dashboard) ----------
+// Return latest 1 record per location
 app.get("/api/latest", async (req, res) => {
   try {
-    const query = {
-      query: "SELECT * FROM c ORDER BY c.windowEnd DESC"
-    };
-
+    const query = `SELECT * FROM c ORDER BY c.windowEnd DESC`;
     const { resources } = await container.items.query(query).fetchAll();
 
     const latest = {};
-    for (const r of resources) {
-      if (!latest[r.location]) {
-        latest[r.location] = r;
-      }
-    }
+    resources.forEach((r) => {
+      if (!latest[r.location]) latest[r.location] = r;
+    });
 
     res.json(Object.values(latest));
   } catch (err) {
     console.error(err);
-    res.status(500).send("Cosmos DB error");
+    res.status(500).send("Error fetching latest data");
   }
 });
 
-// ---------- TREND DATA (old version) ----------
-app.get("/api/trend", async (req, res) => {
+// History – last hour
+app.get("/api/history/:location", async (req, res) => {
   try {
+    const location = req.params.location;
+
     const query = {
-      query: "SELECT * FROM c ORDER BY c.windowEnd DESC"
+      query:
+        "SELECT * FROM c WHERE c.location = @loc ORDER BY c.windowEnd DESC",
+      parameters: [{ name: "@loc", value: location }],
     };
 
     const { resources } = await container.items.query(query).fetchAll();
 
-    // TAKE LAST 12 RECORDS (1 hour)
-    const last12 = resources.slice(0, 12).reverse();
-
-    res.json(last12);
+    res.json(resources.slice(0, 12).reverse()); // 12 × 5-min = 1 hour
   } catch (err) {
     console.error(err);
-    res.status(500).send("Trend error");
+    res.status(500).send("Error fetching history");
   }
 });
 
-// ---------- START SERVER ----------
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);

@@ -1,26 +1,58 @@
 body {
-    background: #f3eaff;
-    font-family: Arial;
+    font-family: Arial, sans-serif;
+    background-color: #f2eaff;
+    margin: 0;
     padding: 20px;
+    text-align: center;
 }
 
-.cards {
+.statusBox {
+    background-color: #b5f5b6;
+    padding: 15px;
+    width: 200px;
+    margin: auto;
+    border-radius: 10px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.cardContainer {
     display: flex;
-    gap: 25px;
+    justify-content: space-around;
+    margin-top: 20px;
 }
 
 .card {
     background: white;
     padding: 20px;
-    width: 30%;
     border-radius: 15px;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    width: 28%;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.status {
-    padding: 5px 12px;
-    border-radius: 10px;
-    color: #000;
-    font-weight: bold;
+.badge {
     display: inline-block;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.badge.safe { background-color: #b7f7b2; }
+.badge.caution { background-color: #fce29f; }
+.badge.unsafe { background-color: #f8a3a3; }
+
+.charts {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 40px;
+}
+
+.chartBox {
+    background: white;
+    width: 45%;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }

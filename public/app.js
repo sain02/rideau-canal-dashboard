@@ -1,175 +1,210 @@
-// --- FRONTEND CONSTANTS ---
-const API_BASE = "";
-const LOCATIONS = ["DowsLake", "FifthAvenue", "NAC"];
-const SAFE_COLOR = "#7DDE92";
-const CAUTION_COLOR = "#F4CC70";
-const UNSAFE_COLOR = "#F76C5E";
+// ---------------------------
+// UI ELEMENTS
+// ---------------------------
+const statusBanner = document.getElementById("statusBanner");
+const lastUpdatedEl = document.getElementById("lastUpdated");
 
-// --- DOM ELEMENTS ---
-const statusBanner = document.getElementById("canal-status");
-const updatedTime = document.getElementById("updated-time");
-
-// card values
-const cardElements = {
-    DowsLake: {
-        ice: document.getElementById("dl-ice"),
-        temp: document.getElementById("dl-temp"),
-        snow: document.getElementById("dl-snow"),
-        badge: document.getElementById("dl-badge"),
-    },
-    FifthAvenue: {
-        ice: document.getElementById("fa-ice"),
-        temp: document.getElementById("fa-temp"),
-        snow: document.getElementById("fa-snow"),
-        badge: document.getElementById("fa-badge"),
-    },
-    NAC: {
-        ice: document.getElementById("nac-ice"),
-        temp: document.getElementById("nac-temp"),
-        snow: document.getElementById("nac-snow"),
-        badge: document.getElementById("nac-badge"),
-    }
+const cards = {
+  "Dows Lake": document.getElementById("card-dows"),
+  "Fifth Avenue": document.getElementById("card-fifth"),
+  "NAC": document.getElementById("card-nac")
 };
 
-// Trend chart canvases
-let iceChart, tempChart, snowChart;
+const charts = {
+  ice: null,
+  temp: null,
+  snow: null
+};
 
+// Colors matching professor screenshot
+const COLORS = {
+  dows: "#1abc9c",
+  fifth: "#e74c3c",
+  nac: "#9b59b6"
+};
 
-// ---------------------------------------------------
-// Convert raw values → Safety Status
-// ---------------------------------------------------
-function getSafetyStatus(iceThickness) {
-    if (iceThickness >= 30) return "Safe";
-    if (iceThickness >= 20) return "Caution";
-    return "Unsafe";
-}
-function getColor(status) {
-    if (status === "Safe") return SAFE_COLOR;
-    if (status === "Caution") return CAUTION_COLOR;
-    return UNSAFE_COLOR;
-}
-
-
-// ---------------------------------------------------
-// LOAD LATEST SENSOR AGGREGATION
-// ---------------------------------------------------
+// ---------------------------
+// Fetch latest readings
+// ---------------------------
 async function loadLatest() {
-    const res = await fetch(`/api/latest`);
-    const data = await res.json();
+  const res = await fetch("/api/latest");
+  const data = await res.json();
 
-    let globalStatus = "Safe";
+  lastUpdatedEl.textContent = new Date().toLocaleTimeString();
 
-    data.forEach((loc) => {
-        const name = loc.location;
-        const card = cardElements[name];
-        if (!card) return;
+  // Determine overall canal status
+  let canalStatus = "Safe";
+  for (let row of data) {
+    if (row.safetyStatus === "Unsafe") canalStatus = "Unsafe";
+    else if (row.safetyStatus === "Caution" && canalStatus !== "Unsafe")
+      canalStatus = "Caution";
+  }
+  setBannerStatus(canalStatus);
 
-        card.ice.textContent = loc.avgIceThickness.toFixed(2) + " cm";
-        card.temp.textContent = loc.avgSurfaceTemperature.toFixed(2) + " °C";
-        card.snow.textContent = loc.avgSnow.toFixed(2) + " cm";
-
-        const status = getSafetyStatus(loc.avgIceThickness);
-        card.badge.textContent = status;
-        card.badge.style.background = getColor(status);
-
-        if (status === "Unsafe") globalStatus = "Unsafe";
-        else if (status === "Caution" && globalStatus !== "Unsafe") globalStatus = "Caution";
-    });
-
-    // Update banner
-    statusBanner.textContent = globalStatus;
-    statusBanner.style.background = getColor(globalStatus);
-
-    updatedTime.textContent = new Date().toLocaleTimeString();
+  // Update each card
+  data.forEach(updateCard);
 }
 
+// ---------------------------
+// Update safety banner
+// ---------------------------
+function setBannerStatus(status) {
+  statusBanner.textContent = status;
 
-// ---------------------------------------------------
-// LOAD HISTORY FOR TREND GRAPHS
-// ---------------------------------------------------
-async function loadTrends() {
-    const datasetsIce = [];
-    const datasetsTemp = [];
-    const datasetsSnow = [];
+  if (status === "Safe") {
+    statusBanner.style.background = "#b9f6ca";
+  } else if (status === "Caution") {
+    statusBanner.style.background = "#ffe082";
+  } else {
+    statusBanner.style.background = "#ff8a80";
+  }
+}
 
-    for (const loc of LOCATIONS) {
-        const res = await fetch(`/api/history/${loc}?hours=1`);
-        const rows = await res.json();
+// ---------------------------
+// Update a location card
+// ---------------------------
+function updateCard(row) {
+  const card = cards[row.location];
+  if (!card) return;
 
-        const labels = rows.map(r => r.windowEnd);
-        const ice = rows.map(r => r.avgIceThickness);
-        const temp = rows.map(r => r.avgSurfaceTemperature);
-        const snow = rows.map(r => r.avgSnow);
+  card.querySelector(".safety").textContent = row.safetyStatus;
+  card.querySelector(".ice").textContent = row.avgIceThickness.toFixed(2);
+  card.querySelector(".temp").textContent = row.avgSurfaceTemperature.toFixed(2);
+  card.querySelector(".snow").textContent = row.avgSnow.toFixed(2);
 
-        const colorMap = {
-            DowsLake: "#36A2EB",
-            FifthAvenue: "#FF3B8D",
-            NAC: "#9B59B6"
-        };
+  // Color badge
+  const badge = card.querySelector(".safety");
+  if (row.safetyStatus === "Safe") badge.style.background = "#b9f6ca";
+  else if (row.safetyStatus === "Caution") badge.style.background = "#ffe082";
+  else badge.style.background = "#ff8a80";
+}
 
-        datasetsIce.push({
-            label: loc,
-            data: ice,
-            borderColor: colorMap[loc],
-            tension: 0.3
-        });
-        datasetsTemp.push({
-            label: loc,
-            data: temp,
-            borderColor: colorMap[loc],
-            tension: 0.3
-        });
-        datasetsSnow.push({
-            label: loc,
-            data: snow,
-            borderColor: colorMap[loc],
-            tension: 0.3
-        });
+// ---------------------------
+// Fetch history for trend charts
+// ---------------------------
+async function loadHistory() {
+  const locations = ["Dows Lake", "Fifth Avenue", "NAC"];
+  let history = {};
 
-        window.chartLabels = labels; // Shared
+  for (let loc of locations) {
+    const res = await fetch(`/api/history/${encodeURIComponent(loc)}?hours=1`);
+    history[loc] = await res.json();
+  }
+
+  buildCharts(history);
+}
+
+// ---------------------------
+// Chart builder
+// ---------------------------
+function buildCharts(history) {
+  const labels = history["Dows Lake"].map(r => r.windowEnd.split("T")[1].substring(0,5));
+
+  // Extract trend lines
+  const datasetsIce = [
+    {
+      label: "Dow's Lake",
+      data: history["Dows Lake"].map(r => r.avgIceThickness),
+      borderColor: COLORS.dows,
+      tension: 0.3
+    },
+    {
+      label: "Fifth Avenue",
+      data: history["Fifth Avenue"].map(r => r.avgIceThickness),
+      borderColor: COLORS.fifth,
+      tension: 0.3
+    },
+    {
+      label: "NAC",
+      data: history["NAC"].map(r => r.avgIceThickness),
+      borderColor: COLORS.nac,
+      tension: 0.3
     }
+  ];
 
-    drawCharts(datasetsIce, datasetsTemp, datasetsSnow);
+  const datasetsTemp = [
+    {
+      label: "Dow's Lake",
+      data: history["Dows Lake"].map(r => r.avgSurfaceTemperature),
+      borderColor: COLORS.dows,
+      tension: 0.3
+    },
+    {
+      label: "Fifth Avenue",
+      data: history["Fifth Avenue"].map(r => r.avgSurfaceTemperature),
+      borderColor: COLORS.fifth,
+      tension: 0.3
+    },
+    {
+      label: "NAC",
+      data: history["NAC"].map(r => r.avgSurfaceTemperature),
+      borderColor: COLORS.nac,
+      tension: 0.3
+    }
+  ];
+
+  const datasetsSnow = [
+    {
+      label: "Dow's Lake",
+      data: history["Dows Lake"].map(r => r.avgSnow),
+      borderColor: COLORS.dows,
+      tension: 0.3
+    },
+    {
+      label: "Fifth Avenue",
+      data: history["Fifth Avenue"].map(r => r.avgSnow),
+      borderColor: COLORS.fifth,
+      tension: 0.3
+    },
+    {
+      label: "NAC",
+      data: history["NAC"].map(r => r.avgSnow),
+      borderColor: COLORS.nac,
+      tension: 0.3
+    }
+  ];
+
+  // Build charts
+  makeChart("chart-ice", labels, datasetsIce, "Ice Thickness");
+  makeChart("chart-temp", labels, datasetsTemp, "Surface Temperature");
+  makeChart("chart-snow", labels, datasetsSnow, "Snow Depth");
 }
 
+// ---------------------------
+// Helper to create chart
+// ---------------------------
+function makeChart(id, labels, datasets, title) {
+  const ctx = document.getElementById(id).getContext("2d");
 
-// ---------------------------------------------------
-// DRAW CHARTS (with Chart.js)
-// ---------------------------------------------------
-function drawCharts(iceData, tempData, snowData) {
-    const labels = window.chartLabels;
+  if (charts[id]) charts[id].destroy();
 
-    if (iceChart) iceChart.destroy();
-    if (tempChart) tempChart.destroy();
-    if (snowChart) snowChart.destroy();
-
-    iceChart = new Chart(document.getElementById("iceChart"), {
-        type: "line",
-        data: { labels, datasets: iceData },
-        options: { responsive: true, plugins: { legend: { position: "bottom" }} }
-    });
-
-    tempChart = new Chart(document.getElementById("tempChart"), {
-        type: "line",
-        data: { labels, datasets: tempData },
-        options: { responsive: true, plugins: { legend: { position: "bottom" }} }
-    });
-
-    snowChart = new Chart(document.getElementById("snowChart"), {
-        type: "line",
-        data: { labels, datasets: snowData },
-        options: { responsive: true, plugins: { legend: { position: "bottom" }} }
-    });
+  charts[id] = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" },
+        title: { display: false }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 6 }},
+        y: { beginAtZero: false }
+      }
+    }
+  });
 }
 
-
-// ---------------------------------------------------
-//  AUTO-REFRESH (EVERY 5 SECONDS)
-// ---------------------------------------------------
-async function refreshDashboard() {
-    await loadLatest();
-    await loadTrends();
+// ---------------------------
+// MAIN LOOP
+// ---------------------------
+async function refresh() {
+  await loadLatest();
+  await loadHistory();
 }
 
-refreshDashboard();
-setInterval(refreshDashboard, 5000);
+// Load immediately
+refresh();
+
+// Refresh every 5 seconds
+setInterval(refresh, 5000);

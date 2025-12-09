@@ -59,6 +59,9 @@ Before running the dashboard you must have:
 - Sensor Simulator running and generating new data
 
 ---
+## AI Tools Used
+- **Tool:** ChatGPT / GitHub Copilot / etc.
+- **Purpose:** Code generation, debugging, documentation
 
 ## Installation
 
